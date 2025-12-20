@@ -68,7 +68,7 @@ async def checkbot(ctx):
 if __name__ == "__main__":
     keep_alive()  # Web server cho UptimeRobot
 
-    TOKEN = os.getenv("TOKEN")
+    TOKEN = os.getenv("DISCORD_TOKEN")
     if not TOKEN:
         raise RuntimeError("❌ Chưa set biến môi trường TOKEN")
 
