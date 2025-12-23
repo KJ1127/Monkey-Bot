@@ -1,4 +1,3 @@
 discord.py
-flask
 PyNaCl
-yt-dlp
+flask
