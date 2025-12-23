@@ -107,8 +107,10 @@ async def play(ctx, song: str):
 
     ctx.voice_client.stop()
     ctx.voice_client.play(
-        discord.FFmpegPCMAudio(file_path)
-    )
+        discord.FFmpegPCMAudio(
+    file_path,
+    options="-vn -filter:a volume=0.6"
+        )
 
     await ctx.send(f"🎶 Đang phát: **{song.upper()}**")
 
