@@ -11,6 +11,13 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
+# ===== MUSIC FILES =====
+MUSIC_FILES = {
+    "butterfly": "music/butterfly.mp3",
+    "braveheart": "music/braveheart.mp3",
+    "breakup": "music/breakup.mp3"
+}
+
 # ===== BOT READY =====
 @bot.event
 async def on_ready():
@@ -29,16 +36,14 @@ async def on_message(message):
 
     if msg in ["hello", "hi", "chào"]:
         await message.channel.send("👋 Chào bạn nha!")
-
     elif "bot đâu" in msg:
         await message.channel.send("🐒 Tao đây nè, gọi chi vậy?")
-
     elif msg == "ping":
         await message.channel.send("🏓 Pong!")
 
     await bot.process_commands(message)
 
-# ===== LỆNH QUẢN LÝ =====
+# ===== CLEAR =====
 @bot.command()
 @commands.has_permissions(manage_messages=True)
 async def clear(ctx, amount: int):
@@ -64,16 +69,7 @@ async def checkbot(ctx):
         f"🕒 Thời gian: `{time_now}`"
     )
 
-# =================================================
-# ============ PHẦN PHÁT NHẠC FILE =================
-# =================================================
-
-MUSIC_FILES = {
-    "butterfly": "music/butterfly.mp3",
-    "braveheart": "music/braveheart.mp3",
-    "breakup": "music/breakup.mp3"
-}
-
+# ===== VOICE COMMANDS =====
 @bot.command()
 async def join(ctx):
     if ctx.author.voice:
@@ -91,7 +87,9 @@ async def play(ctx, song: str):
     song = song.lower()
 
     if song not in MUSIC_FILES:
-        await ctx.send("❌ Chỉ có: butterfly / braveheart / breakup")
+        await ctx.send(
+            "❌ Chỉ có: " + ", ".join(MUSIC_FILES.keys())
+        )
         return
 
     if not ctx.author.voice:
@@ -103,7 +101,7 @@ async def play(ctx, song: str):
 
     file_path = MUSIC_FILES[song]
 
-    if not os.path.isfile(file_path):
+    if not os.path.exists(file_path):
         await ctx.send("❌ Không tìm thấy file nhạc")
         return
 
@@ -116,10 +114,10 @@ async def play(ctx, song: str):
 
 # ===== START BOT =====
 if __name__ == "__main__":
-    keep_alive()  # Web server cho UptimeRobot (có cũng được, không có vẫn chạy)
+    keep_alive()
 
     TOKEN = os.getenv("DISCORD_TOKEN")
     if not TOKEN:
-        raise RuntimeError("❌ Chưa set biến môi trường DISCORD_TOKEN")
+        raise RuntimeError("❌ Chưa set DISCORD_TOKEN")
 
     bot.run(TOKEN)
