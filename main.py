@@ -39,7 +39,7 @@ async def on_message(message):
     elif msg == "docchieu":
         await message.channel.send(
             "⚔️ **ĐỘC CHIÊU!**",
-            file=discord.File("gifs/docchieu.gif")
+            file=discord.File("gif/docchieu.gif")
         )
 
     await bot.process_commands(message)
