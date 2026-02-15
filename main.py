@@ -149,11 +149,5 @@ if __name__ == "__main__":
     if not TOKEN:
         raise RuntimeError("❌ Chưa set biến môi trường DISCORD_TOKEN")
 
-    while True:
-        try:
-            print("🚀 Đang khởi động bot...")
-            bot.run(TOKEN)
-        except Exception as e:
-            print("💥 Bot bị crash:", e)
-            print("⏳ Thử khởi động lại sau 10 giây...")
-            asyncio.sleep(10)
+    print("Đang khởi động bot....")
+    bot.run(TOKEN)
