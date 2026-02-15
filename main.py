@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from datetime import datetime
 import os
+import asyncio
 from keep_alive import keep_alive
 
 # ===== INTENTS =====
@@ -11,13 +12,25 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# ===== BOT READY =====
+# ===== BOT EVENTS =====
 @bot.event
 async def on_ready():
     await bot.change_presence(
         activity=discord.Game(name="Giám sát khỉ con 🐒")
     )
-    print(f"Bot đã online: {bot.user}")
+    print(f"✅ Bot đã online: {bot.user}")
+
+@bot.event
+async def on_disconnect():
+    print("⚠️ Bot bị ngắt kết nối Discord!")
+
+@bot.event
+async def on_resumed():
+    print("🔄 Bot đã reconnect lại Discord!")
+
+@bot.event
+async def on_error(event, *args, **kwargs):
+    print(f"❌ Lỗi trong event {event}")
 
 # ===== AUTO REPLY + GIF =====
 @bot.event
@@ -83,13 +96,17 @@ async def play(ctx, song: str):
     if not ctx.voice_client:
         await ctx.author.voice.channel.connect()
 
+    def after_playing(error):
+        if error:
+            print("❌ Lỗi phát nhạc:", error)
+
     source = discord.FFmpegPCMAudio(
         DIGIMON_MUSIC[song],
         **FFMPEG_OPTIONS
     )
 
     ctx.voice_client.stop()
-    ctx.voice_client.play(source)
+    ctx.voice_client.play(source, after=after_playing)
 
     await ctx.send(f"🎶 Đang phát: **{song.upper()}**")
 
@@ -97,6 +114,11 @@ async def play(ctx, song: str):
 @bot.command()
 @commands.has_permissions(manage_messages=True)
 async def clear(ctx, amount: int):
+
+    if amount > 100:
+        await ctx.send("❌ Tối đa chỉ được xóa 100 tin để tránh rate limit!")
+        return
+
     await ctx.channel.purge(limit=amount + 1)
     msg = await ctx.send(f"🧹 Đã xóa {amount} tin nhắn")
     await msg.delete(delay=3)
@@ -119,7 +141,7 @@ async def checkbot(ctx):
         f"🕒 Thời gian: `{time_now}`"
     )
 
-# ===== START BOT =====
+# ===== START BOT (AUTO RESTART IF CRASH) =====
 if __name__ == "__main__":
     keep_alive()
 
@@ -127,4 +149,11 @@ if __name__ == "__main__":
     if not TOKEN:
         raise RuntimeError("❌ Chưa set biến môi trường DISCORD_TOKEN")
 
-    bot.run(TOKEN)
+    while True:
+        try:
+            print("🚀 Đang khởi động bot...")
+            bot.run(TOKEN)
+        except Exception as e:
+            print("💥 Bot bị crash:", e)
+            print("⏳ Thử khởi động lại sau 10 giây...")
+            asyncio.sleep(10)
