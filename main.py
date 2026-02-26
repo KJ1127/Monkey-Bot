@@ -80,7 +80,7 @@ FFMPEG_OPTIONS = {
 async def join(ctx):
     if not ctx.author.voice:
         await ctx.send("❌ Bạn chưa vào voice")
-             return
+        return
 
     if ctx.voice_client:
         if ctx.voice_client.channel == ctx.author.voice.channel:
