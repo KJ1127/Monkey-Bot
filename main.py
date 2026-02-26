@@ -20,15 +20,12 @@ async def on_connect():
     
 @bot.event
 async def on_ready():
-    await bot.change_presence(
-        activity=discord.Game(name="Giám sát khỉ con 🐒")
-    )
-   guild_count = len(bot.guilds)
-    print(f"✅ Bot đã online: {bot.user} | Servers: {guild_count}")
+    await bot.change_presence(activity=discord.Game(name="Giám sát khỉ con 🐒"))
+    server_count = len(bot.guilds)
+    print(f"✅ Bot đã online: {bot.user} | Servers: {server_count}")
 
-    if guild_count == 0:
+    if server_count == 0:
         print("⚠️ Bot đang online nhưng chưa ở server nào. Hãy mời bot bằng OAuth2 URL (scope: bot, applications.commands).")
-
 @bot.event
 async def on_disconnect():
     print("⚠️ Bot bị ngắt kết nối Discord!")
