@@ -2,8 +2,9 @@ import discord
 from discord.ext import commands
 from datetime import datetime
 import os
-import asyncio
+import time
 from keep_alive import keep_alive
+import traceback
 
 # ===== INTENTS =====
 intents = discord.Intents.default()
@@ -14,11 +15,19 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 # ===== BOT EVENTS =====
 @bot.event
+async def on_connect():
+    print("🔌 Đã kết nối Gateway Discord")
+    
+@bot.event
 async def on_ready():
     await bot.change_presence(
         activity=discord.Game(name="Giám sát khỉ con 🐒")
     )
-    print(f"✅ Bot đã online: {bot.user}")
+   guild_count = len(bot.guilds)
+    print(f"✅ Bot đã online: {bot.user} | Servers: {guild_count}")
+
+    if guild_count == 0:
+        print("⚠️ Bot đang online nhưng chưa ở server nào. Hãy mời bot bằng OAuth2 URL (scope: bot, applications.commands).")
 
 @bot.event
 async def on_disconnect():
@@ -31,6 +40,7 @@ async def on_resumed():
 @bot.event
 async def on_error(event, *args, **kwargs):
     print(f"❌ Lỗi trong event {event}")
+    traceback.print_exc()
 
 # ===== AUTO REPLY + GIF =====
 @bot.event
@@ -71,10 +81,21 @@ FFMPEG_OPTIONS = {
 # ===== VOICE COMMANDS =====
 @bot.command()
 async def join(ctx):
-    if ctx.author.voice:
-        await ctx.author.voice.channel.connect()
-    else:
+    if not ctx.author.voice:
         await ctx.send("❌ Bạn chưa vào voice")
+             return
+
+    if ctx.voice_client:
+        if ctx.voice_client.channel == ctx.author.voice.channel:
+            await ctx.send("✅ Bot đã ở sẵn trong voice này rồi")
+            return
+
+        await ctx.voice_client.move_to(ctx.author.voice.channel)
+        await ctx.send("🔄 Bot đã chuyển sang voice của bạn")
+        return
+
+    await ctx.author.voice.channel.connect()
+
 
 @bot.command()
 async def leave(ctx):
@@ -95,6 +116,9 @@ async def play(ctx, song: str):
 
     if not ctx.voice_client:
         await ctx.author.voice.channel.connect()
+    elif ctx.voice_client.channel != ctx.author.voice.channel:
+        await ctx.send("❌ Bạn cần vào cùng voice với bot để phát nhạc")
+        return
 
     def after_playing(error):
         if error:
@@ -127,6 +151,20 @@ async def clear(ctx, amount: int):
 async def clear_error(ctx, error):
     if isinstance(error, commands.MissingPermissions):
         await ctx.send("❌ Bạn không có quyền dùng lệnh này")
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        return
+
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send("❌ Bạn thiếu tham số cho lệnh này")
+        return
+
+    if isinstance(error, commands.BadArgument):
+        await ctx.send("❌ Tham số không hợp lệ")
+        return
+
+    print(f"❌ Command error: {error}")
 
 # ===== CHECK BOT =====
 @bot.command()
@@ -145,9 +183,27 @@ async def checkbot(ctx):
 if __name__ == "__main__":
     keep_alive()
 
-    TOKEN = os.getenv("DISCORD_TOKEN")
+    TOKEN = (os.getenv("DISCORD_TOKEN") or "").strip()
     if not TOKEN:
         raise RuntimeError("❌ Chưa set biến môi trường DISCORD_TOKEN")
 
     print("Đang khởi động bot....")
-    bot.run(TOKEN)
+
+    while True:
+        try:
+            bot.run(TOKEN)
+            break
+        except discord.LoginFailure:
+            raise RuntimeError("❌ DISCORD_TOKEN không hợp lệ hoặc đã hết hạn")
+        except discord.PrivilegedIntentsRequired:
+            raise RuntimeError(
+                "❌ Bot đang bật intents đặc quyền trong code nhưng chưa bật trong Discord Developer Portal"
+            )
+        except KeyboardInterrupt:
+            print("⏹️ Đã dừng bot theo yêu cầu người dùng")
+            break
+        except Exception as exc:
+            print(f"⚠️ Mất kết nối Discord hoặc lỗi tạm thời: {exc}")
+            print("🔁 Sẽ thử kết nối lại sau 15 giây...")
+            time.sleep(15)
+
