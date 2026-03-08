@@ -3,6 +3,7 @@ from discord.ext import commands
 from datetime import datetime
 import os
 import time
+import asyncio
 from keep_alive import keep_alive
 import traceback
 
@@ -26,6 +27,7 @@ async def on_ready():
 
     if server_count == 0:
         print("⚠️ Bot đang online nhưng chưa ở server nào. Hãy mời bot bằng OAuth2 URL (scope: bot, applications.commands).")
+
 @bot.event
 async def on_disconnect():
     print("⚠️ Bot bị ngắt kết nối Discord!")
@@ -47,7 +49,6 @@ async def on_message(message):
 
     msg = message.content.lower()
 
-    # nếu ai ping bot
     if bot.user.mentioned_in(message):
         await message.channel.send(f"Moẹ đang mệt ping kẹc gì hả {message.author.mention}")
 
@@ -103,6 +104,7 @@ async def leave(ctx):
     if ctx.voice_client:
         await ctx.voice_client.disconnect()
 
+
 @bot.command()
 async def play(ctx, song: str):
     song = song.lower()
@@ -152,6 +154,64 @@ async def clear(ctx, amount: int):
 async def clear_error(ctx, error):
     if isinstance(error, commands.MissingPermissions):
         await ctx.send("❌ Bạn không có quyền dùng lệnh này")
+
+# ===== MUTE COMMAND =====
+def parse_time(time_str):
+    unit = time_str[-1]
+    amount = int(time_str[:-1])
+
+    if unit == "s":
+        return amount
+    elif unit == "m":
+        return amount * 60
+    elif unit == "h":
+        return amount * 3600
+    elif unit == "d":
+        return amount * 86400
+    else:
+        return None
+
+
+@bot.command()
+@commands.has_role("Admin")
+async def mute(ctx, member: discord.Member, duration: str):
+
+    seconds = parse_time(duration)
+
+    if seconds is None:
+        await ctx.send("Sai định dạng thời gian. Ví dụ: !mute @user 10s / 5m / 2h / 1d")
+        return
+
+    muted_role = discord.utils.get(ctx.guild.roles, name="Muted")
+
+    if muted_role is None:
+        muted_role = await ctx.guild.create_role(name="Muted")
+
+        for channel in ctx.guild.channels:
+            await channel.set_permissions(muted_role, send_messages=False, speak=False)
+
+    await member.add_roles(muted_role)
+
+    await ctx.send(f"Cho mày ăn cái mute,lo mà chấn chỉnh lại đi {member.mention}")
+
+    await asyncio.sleep(seconds)
+
+    if muted_role in member.roles:
+        await member.remove_roles(muted_role)
+        await ctx.send(f"Lần này tạm tha cho mày,lo mà giữ mồm giữ miệng {member.mention}")
+
+
+@bot.command()
+@commands.has_role("Admin")
+async def unmute(ctx, member: discord.Member):
+
+    muted_role = discord.utils.get(ctx.guild.roles, name="Muted")
+
+    if muted_role in member.roles:
+        await member.remove_roles(muted_role)
+        await ctx.send(f"Lần này tạm tha cho mày,lo mà giữ mồm giữ miệng {member.mention}")
+
+# ===== COMMAND ERROR =====
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
@@ -180,7 +240,7 @@ async def checkbot(ctx):
         f"🕒 Thời gian: `{time_now}`"
     )
 
-# ===== START BOT (AUTO RESTART IF CRASH) =====
+# ===== START BOT =====
 if __name__ == "__main__":
     keep_alive()
 
@@ -194,17 +254,7 @@ if __name__ == "__main__":
         try:
             bot.run(TOKEN)
             break
-        except discord.LoginFailure:
-            raise RuntimeError("❌ DISCORD_TOKEN không hợp lệ hoặc đã hết hạn")
-        except discord.PrivilegedIntentsRequired:
-            raise RuntimeError(
-                "❌ Bot đang bật intents đặc quyền trong code nhưng chưa bật trong Discord Developer Portal"
-            )
-        except KeyboardInterrupt:
-            print("⏹️ Đã dừng bot theo yêu cầu người dùng")
-            break
         except Exception as exc:
             print(f"⚠️ Mất kết nối Discord hoặc lỗi tạm thời: {exc}")
             print("🔁 Sẽ thử kết nối lại sau 15 giây...")
             time.sleep(15)
-
