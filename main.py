@@ -47,6 +47,10 @@ async def on_message(message):
 
     msg = message.content.lower()
 
+    # nếu ai ping bot
+    if bot.user.mentioned_in(message):
+        await message.channel.send(f"Moẹ đang mệt ping kẹc gì hả {message.author.mention}")
+
     if msg in ["hello", "hi", "chào"]:
         await message.channel.send("Chào kẹc gì mà chào,Quen biết gì nhau mà chào")
 
