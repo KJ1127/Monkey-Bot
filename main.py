@@ -22,7 +22,7 @@ async def on_connect():
 async def on_ready():
     await bot.change_presence(activity=discord.Game(name="Giám sát khỉ con 🐒"))
     server_count = len(bot.guilds)
-    print(f"✅ Bot đã online: {bot.user} | Servers: {server_count}")
+    print(f"ai am sờ tiu ờ lai: {bot.user} | Servers: {server_count}")
 
     if server_count == 0:
         print("⚠️ Bot đang online nhưng chưa ở server nào. Hãy mời bot bằng OAuth2 URL (scope: bot, applications.commands).")
@@ -48,10 +48,10 @@ async def on_message(message):
     msg = message.content.lower()
 
     if msg in ["hello", "hi", "chào"]:
-        await message.channel.send("👋 Chào bạn nha!")
+        await message.channel.send("Chào kẹc gì mà chào,Quen biết gì nhau mà chào")
 
     elif "bot đâu" in msg:
-        await message.channel.send("🐒 Tao đây nè, gọi chi vậy?")
+        await message.channel.send("Đang lọ gọi con kẹc à")
 
     elif msg == "ping":
         await message.channel.send("🏓 Pong!")
