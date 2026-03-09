@@ -234,7 +234,7 @@ async def checkbot(ctx):
     time_now = datetime.now().strftime("%H:%M:%S")
 
     await ctx.send(
-        f"✅ **Bot đang hoạt động!**\n"
+        f"👍🏿 **AI AM SỜ TIU Ờ LAI**\n"
         f"🤖 Tên bot: `{bot.user}`\n"
         f"⏱️ Ping: `{ping}ms`\n"
         f"🕒 Thời gian: `{time_now}`"
