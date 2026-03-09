@@ -157,8 +157,14 @@ async def clear_error(ctx, error):
 
 # ===== MUTE COMMAND =====
 def parse_time(time_str):
-    unit = time_str[-1]
-    amount = int(time_str[:-1])
+    try:
+        unit = time_str[-1].lower()
+        amount = int(time_str[:-1])
+    except (ValueError, IndexError):
+        return None
+
+    if amount <= 0:
+        return None
 
     if unit == "s":
         return amount
@@ -182,13 +188,32 @@ async def mute(ctx, member: discord.Member, duration: str):
         await ctx.send("Sai định dạng thời gian. Ví dụ: !mute @user 10s / 5m / 2h / 1d")
         return
 
+    # Tìm role Muted đã tồn tại trong server.
     muted_role = discord.utils.get(ctx.guild.roles, name="Muted")
 
+    # Nếu chưa có role Muted thì mới tạo mới 1 lần duy nhất.
+    # Các lần !mute sau sẽ dùng lại role này, không tạo trùng role.  
     if muted_role is None:
         muted_role = await ctx.guild.create_role(name="Muted")
 
-        for channel in ctx.guild.channels:
-            await channel.set_permissions(muted_role, send_messages=False, speak=False)
+    # Dù role vừa tạo hay đã có sẵn từ trước, vẫn luôn cập nhật overwrite
+    # để tránh trường hợp role tồn tại nhưng chưa bị khóa quyền chat ở channel mới/cũ.
+    for channel in ctx.guild.channels:
+        await channel.set_permissions(
+            muted_role,
+            send_messages=False,
+            send_messages_in_threads=False,
+            add_reactions=False,
+            create_public_threads=False,
+            create_private_threads=False,
+            speak=False,
+        )
+
+    if member.guild_permissions.administrator:
+        await ctx.send(
+            f"⚠️ Không thể mute {member.mention} bằng role vì user này có quyền Administrator."
+        )
+        return
 
     await member.add_roles(muted_role)
 
