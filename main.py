@@ -196,18 +196,41 @@ async def mute(ctx, member: discord.Member, duration: str):
     if muted_role is None:
         muted_role = await ctx.guild.create_role(name="Muted")
 
-    # Dù role vừa tạo hay đã có sẵn từ trước, vẫn luôn cập nhật overwrite
-    # để tránh trường hợp role tồn tại nhưng chưa bị khóa quyền chat ở channel mới/cũ.
-    for channel in ctx.guild.channels:
-        await channel.set_permissions(
-            muted_role,
-            send_messages=False,
-            send_messages_in_threads=False,
-            add_reactions=False,
-            create_public_threads=False,
-            create_private_threads=False,
-            speak=False,
+    bot_member = ctx.guild.me
+
+    if not bot_member.guild_permissions.manage_roles:
+        await ctx.send("❌ Bot thiếu quyền **Manage Roles** nên không thể gắn role mute.")
+        return
+
+    if muted_role >= bot_member.top_role:
+        await ctx.send(
+            "❌ Role **Muted** đang cao hơn (hoặc bằng) role cao nhất của bot. "
+            "Hãy kéo role bot lên trên role Muted trong Server Settings > Roles."
         )
+        return
+
+    if member.top_role >= bot_member.top_role:
+        await ctx.send(
+            f"❌ Không thể mute {member.mention} vì role của user này cao hơn hoặc bằng role cao nhất của bot."
+        )
+        return
+
+    # Dù role vừa tạo hay đã có sẵn từ trước, vẫn thử cập nhật overwrite
+    # để tránh trường hợp role tồn tại nhưng chưa bị khóa quyền chat ở channel mới/cũ.
+       failed_channels = 0 
+    for channel in ctx.guild.channels:
+        try:
+            await channel.set_permissions(
+                muted_role,
+                send_messages=False,
+                send_messages_in_threads=False,
+                add_reactions=False,
+                create_public_threads=False,
+                create_private_threads=False,
+                speak=False,
+            )
+        except (discord.Forbidden, discord.HTTPException):
+            failed_channels += 1
 
     if member.guild_permissions.administrator:
         await ctx.send(
@@ -215,9 +238,20 @@ async def mute(ctx, member: discord.Member, duration: str):
         )
         return
 
-    await member.add_roles(muted_role)
+    try:
+        await member.add_roles(muted_role)
+    except discord.Forbidden:
+        await ctx.send(
+            "❌ Discord từ chối thao tác add role. Kiểm tra lại role hierarchy và quyền của bot."
+        )
+        return
 
     await ctx.send(f"Cho mày ăn cái mute,lo mà chấn chỉnh lại đi {member.mention}")
+
+ if failed_channels > 0:
+        await ctx.send(
+            f"⚠️ Có {failed_channels} channel bot không cập nhật được quyền mute (thường do thiếu quyền ở channel/category)."
+        )
 
     await asyncio.sleep(seconds)
 
