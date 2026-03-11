@@ -248,7 +248,7 @@ async def mute(ctx, member: discord.Member, duration: str):
 
     await ctx.send(f"Cho mày ăn cái mute,lo mà chấn chỉnh lại đi {member.mention}")
 
-        if failed_channels > 0:
+    if failed_channels > 0:
         await ctx.send(
             f"⚠️ Có {failed_channels} channel bot không cập nhật được quyền mute (thường do thiếu quyền ở channel/category)."
         )
