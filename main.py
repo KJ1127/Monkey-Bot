@@ -48,6 +48,18 @@ async def on_message(message):
         return
 
     msg = message.content.lower()
+    # ===== FACEBOOK → FACEBED =====
+    if "facebook.com" in message.content or "fb.watch" in message.content:
+
+        new_link = (
+            message.content
+            .replace("facebook.com", "facebed.com")
+            .replace("fb.watch", "facebed.com")
+        )
+
+        await message.channel.send(
+            f"From {message.author.mention} >\n{new_link}"
+        )
 
     if bot.user.mentioned_in(message):
         await message.channel.send(f"Moẹ đang mệt ping kẹc gì hả {message.author.mention}")
