@@ -178,6 +178,16 @@ def parse_time(time_str):
         return None
 
 
+def format_duration_vi(seconds):
+    if seconds % 86400 == 0:
+        return f"{seconds // 86400} ngày"
+    if seconds % 3600 == 0:
+        return f"{seconds // 3600} giờ"
+    if seconds % 60 == 0:
+        return f"{seconds // 60} phút"
+    return f"{seconds} giây"
+
+
 @bot.command()
 @commands.has_role("Admin")
 async def mute(ctx, member: discord.Member, duration: str):
@@ -246,7 +256,10 @@ async def mute(ctx, member: discord.Member, duration: str):
         )
         return
 
-    await ctx.send(f"Cho mày ăn cái mute,lo mà chấn chỉnh lại đi {member.mention}")
+    duration_text = format_duration_vi(seconds)
+    await ctx.send(
+        f"Cho mày ăn cái mute {duration_text}, lo mà chấn chỉnh lại đi {member.mention}"
+    )
 
     if failed_channels > 0:
         await ctx.send(
