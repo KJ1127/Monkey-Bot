@@ -336,5 +336,5 @@ if __name__ == "__main__":
 
 try:
         bot.run(TOKEN)
-    except Exception as exc:
+except Exception as exc:
         print(f"❌ Bot dừng do lỗi: {exc}")
