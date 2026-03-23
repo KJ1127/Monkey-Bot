@@ -334,11 +334,7 @@ if __name__ == "__main__":
 
     print("Đang khởi động bot....")
 
-    while True:
-        try:
-            bot.run(TOKEN)
-            break
-        except Exception as exc:
-            print(f"⚠️ Mất kết nối Discord hoặc lỗi tạm thời: {exc}")
-            print("🔁 Sẽ thử kết nối lại sau 15 giây...")
-            time.sleep(15)
+try:
+        bot.run(TOKEN)
+    except Exception as exc:
+        print(f"❌ Bot dừng do lỗi: {exc}")
