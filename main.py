@@ -13,6 +13,7 @@ intents.message_content = True
 intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
+startup_announced = False
 
 # ===== BOT EVENTS =====
 @bot.event
@@ -21,20 +22,28 @@ async def on_connect():
     
 @bot.event
 async def on_ready():
+    global startup_announced
+
     await bot.change_presence(activity=discord.Game(name="Giám sát khỉ con 🐒"))
     server_count = len(bot.guilds)
     print(f"ai am sờ tiu ờ lai: {bot.user} | Servers: {server_count}")
 
     if server_count == 0:
         print("⚠️ Bot đang online nhưng chưa ở server nào. Hãy mời bot bằng OAuth2 URL (scope: bot, applications.commands).")
-    else:
-        for guild in bot.guilds:
-            channel = guild.system_channel
-            if channel and channel.permissions_for(guild.me).send_messages:
-                try:
-                    await channel.send("🗣️Ngủm thế dell nào đc")
-                except (discord.Forbidden, discord.HTTPException):
-                    pass
+        return
+
+    # on_ready có thể chạy lại khi reconnect, nên chỉ thông báo 1 lần mỗi lần bật bot.
+    if startup_announced:
+        return
+
+    startup_announced = True
+    for guild in bot.guilds:
+        channel = guild.system_channel
+        if channel and channel.permissions_for(guild.me).send_messages:
+            try:
+                await channel.send("🗣️Ngủm thế dell nào đc")
+            except (discord.Forbidden, discord.HTTPException):
+                pass
                     
 @bot.event
 async def on_disconnect():
