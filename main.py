@@ -27,7 +27,15 @@ async def on_ready():
 
     if server_count == 0:
         print("⚠️ Bot đang online nhưng chưa ở server nào. Hãy mời bot bằng OAuth2 URL (scope: bot, applications.commands).")
-
+    else:
+        for guild in bot.guilds:
+            channel = guild.system_channel
+            if channel and channel.permissions_for(guild.me).send_messages:
+                try:
+                    await channel.send("🗣️Ngủm thế dell nào đc")
+                except (discord.Forbidden, discord.HTTPException):
+                    pass
+                    
 @bot.event
 async def on_disconnect():
     print("⚠️ Bot bị ngắt kết nối Discord!")
@@ -48,19 +56,23 @@ async def on_message(message):
         return
 
     msg = message.content.lower()
-    # ===== FACEBOOK → FACEBED =====
-    if "facebook.com" in message.content or "fb.watch" in message.content:
+    # ===== AUTO REWRITE LINK =====
+    rewritten_link = (
+        message.content
+        .replace("facebook.com", "facebed.com")
+        .replace("fb.watch", "facebed.com")
+        .replace("tiktok.com", "tiktokez.com")
+    )
 
-        new_link = (
-            message.content
-            .replace("facebook.com", "facebed.com")
-            .replace("fb.watch", "facebed.com")
-        )
-
+    if rewritten_link != message.content:
         await message.channel.send(
-            f"From {message.author.mention} >\n{new_link}"
+            f"From {message.author.mention} >\n{rewritten_link}"
         )
-
+        try:
+            await message.delete()
+        except (discord.Forbidden, discord.HTTPException):
+            pass
+            
     if bot.user.mentioned_in(message):
         await message.channel.send(f"Moẹ đang mệt ping kẹc gì hả {message.author.mention}")
 
