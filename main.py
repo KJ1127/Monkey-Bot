@@ -4,6 +4,7 @@ from datetime import datetime
 import os
 import time
 import asyncio
+import shutil
 from keep_alive import keep_alive
 import traceback
 
@@ -112,6 +113,12 @@ DIGIMON_MUSIC = {
 FFMPEG_OPTIONS = {
     "options": "-vn -filter:a volume=0.6"
 }
+
+def resolve_ffmpeg_executable():
+    custom_path = os.getenv("FFMPEG_PATH", "").strip()
+    if custom_path:
+        return custom_path
+    return shutil.which("ffmpeg")
 
 # ===== VOICE COMMANDS =====
 @bot.command()
