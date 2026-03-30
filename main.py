@@ -163,12 +163,27 @@ async def play(ctx, song: str):
         await ctx.send("❌ Bạn cần vào cùng voice với bot để phát nhạc")
         return
 
+    ffmpeg_exe = resolve_ffmpeg_executable()
+    if not ffmpeg_exe:
+        await ctx.send(
+            "❌ Không tìm thấy `ffmpeg`, bot không thể phát nhạc. "
+            "Hãy cài ffmpeg hoặc set biến môi trường `FFMPEG_PATH`."
+        )
+        return
+
     def after_playing(error):
         if error:
             print("❌ Lỗi phát nhạc:", error)
+            asyncio.run_coroutine_threadsafe(
+                ctx.send(
+                    "❌ Lỗi khi phát nhạc. Kiểm tra file nhạc có tồn tại và ffmpeg hoạt động bình thường."
+                ),
+                bot.loop
+            )
 
     source = discord.FFmpegPCMAudio(
         DIGIMON_MUSIC[song],
+        executable=ffmpeg_exe,
         **FFMPEG_OPTIONS
     )
 
