@@ -8,6 +8,11 @@ import shutil
 from keep_alive import keep_alive
 import traceback
 
+try:
+    import imageio_ffmpeg
+except ImportError:
+    imageio_ffmpeg = None
+
 # ===== INTENTS =====
 intents = discord.Intents.default()
 intents.message_content = True
@@ -114,11 +119,23 @@ FFMPEG_OPTIONS = {
     "options": "-vn -filter:a volume=0.6"
 }
 
+
 def resolve_ffmpeg_executable():
     custom_path = os.getenv("FFMPEG_PATH", "").strip()
     if custom_path:
         return custom_path
-    return shutil.which("ffmpeg")
+
+    system_ffmpeg = shutil.which("ffmpeg")
+    if system_ffmpeg:
+        return system_ffmpeg
+
+    if imageio_ffmpeg is not None:
+        try:
+            return imageio_ffmpeg.get_ffmpeg_exe()
+        except Exception:
+            return None
+
+    return None
 
 # ===== VOICE COMMANDS =====
 @bot.command()
