@@ -105,7 +105,7 @@ async def on_message(message):
             "⚔️ **ĐỘC CHIÊU!**",
             file=discord.File("gif/docchieu.gif")
         )
-    elif msg == ["căng thế", "chill đi", "chill","ayo chill"]:
+    elif msg in ["căng thế", "chill đi", "chill","ayo chill"]:
         await message.channel.send(
             "bỉnh tõm đuy bờ rô🙂‍↕️",
             file=discord.File("gif/suwa_lowcortisol.gif")
