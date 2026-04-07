@@ -91,21 +91,21 @@ async def on_message(message):
     if bot.user.mentioned_in(message):
         await message.channel.send(f"Moẹ đang mệt ping kẹc gì hả {message.author.mention}")
 
-    if msg in ["hello", "hi", "chào"]:
+    if msg in ["Hello", "Hi", "Chào"]:
         await message.channel.send("Chào kẹc gì mà chào,Quen biết gì nhau mà chào")
 
-    elif "bot đâu" in msg:
+    elif "Bot đâu" in msg:
         await message.channel.send("Đang lọ gọi con kẹc à")
 
-    elif msg == "ping":
+    elif msg == "Ping":
         await message.channel.send("🏓 Pong!")
 
-    elif msg == "docchieu":
+    elif msg == "Docchieu":
         await message.channel.send(
             "⚔️ **ĐỘC CHIÊU!**",
             file=discord.File("gif/docchieu.gif")
         )
-    elif msg in ["căng thế", "chill đi", "chill","ayo chill"]:
+    elif msg in ["Căng thế", "Chill đi", "Chill","Ayo chill"]:
         await message.channel.send(
             "bỉnh tõm đuy bờ rô🙂‍↕️",
             file=discord.File("gif/suwa_lowcortisol.gif")
