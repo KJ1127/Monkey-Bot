@@ -110,7 +110,19 @@ async def on_message(message):
     if message.author.bot:
         return
 
-    msg = message.content.lower()
+    
+    # Một số trường hợp reconnect có thể khiến event on_message bị đẩy trùng.
+    # Bỏ qua message ID đã xử lý để tránh bot trả lời lặp.
+    if message.id in recent_message_ids:
+        return
+
+    recent_message_ids.add(message.id)
+    if len(recent_message_ids) > MAX_TRACKED_MESSAGE_IDS:
+        recent_message_ids.clear()
+
+    # Chuẩn hóa khoảng trắng trước, rồi tạo thêm bản lower để so sánh hoa/thường
+    normalized_message = " ".join(message.content.split())
+    msg = normalized_message.casefold()
     # ===== AUTO REWRITE LINK =====
     rewritten_link = (
         message.content
@@ -131,21 +143,22 @@ async def on_message(message):
     if bot.user.mentioned_in(message):
         await message.channel.send(f"Moẹ đang mệt ping kẹc gì hả {message.author.mention}")
 
-    if msg in ["Hello", "Hi", "Chào"]:
+    # Từ đây trở xuống dùng `msg` (casefold) nên nhận cả chữ hoa và chữ thường.
+    if msg in ["hello", "hi", "chào"]:
         await message.channel.send("Chào kẹc gì mà chào,Quen biết gì nhau mà chào")
 
-    elif "Bot đâu" in msg:
+    elif "bot đâu" in msg:
         await message.channel.send("Đang lọ gọi con kẹc à")
 
-    elif msg == "Ping":
+    elif msg == "ping":
         await message.channel.send("🏓 Pong!")
 
-    elif msg == "Docchieu":
+    elif msg == "docchieu":
         await message.channel.send(
             "⚔️ **ĐỘC CHIÊU!**",
             file=discord.File("gif/docchieu.gif")
         )
-    elif msg in ["Căng thế", "Chill đi", "Chill","Ayo chill"]:
+    elif msg in ["căng thế", "chill đi", "chill", "ayo chill"]:
         await message.channel.send(
             "bỉnh tõm đuy bờ rô🙂‍↕️",
             file=discord.File("gif/suwa_lowcortisol.gif")
