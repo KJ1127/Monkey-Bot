@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from datetime import datetime
+import json
 import os
 import time
 import asyncio
@@ -20,6 +21,33 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 startup_announced = False
+STARTUP_STATE_FILE = "startup_state.json"
+STARTUP_ANNOUNCE_COOLDOWN_SECONDS = 12 * 60 * 60
+MAX_TRACKED_MESSAGE_IDS = 2000
+recent_message_ids = set()
+
+
+def load_startup_state():
+    if not os.path.exists(STARTUP_STATE_FILE):
+        return {}
+
+    try:
+        with open(STARTUP_STATE_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            if isinstance(data, dict):
+                return data
+    except (OSError, json.JSONDecodeError):
+        pass
+
+    return {}
+
+
+def save_startup_state(state):
+    try:
+        with open(STARTUP_STATE_FILE, "w", encoding="utf-8") as f:
+            json.dump(state, f)
+    except OSError:
+        pass
 
 # ===== BOT EVENTS =====
 @bot.event
@@ -43,13 +71,25 @@ async def on_ready():
         return
 
     startup_announced = True
+    startup_state = load_startup_state()
+    now_ts = int(time.time())
+
     for guild in bot.guilds:
         channel = guild.system_channel
-        if channel and channel.permissions_for(guild.me).send_messages:
-            try:
-                await channel.send("🗣️Ngủm thế dell nào đc")
-            except (discord.Forbidden, discord.HTTPException):
-                pass
+        if not channel or not channel.permissions_for(guild.me).send_messages:
+            continue
+
+        last_sent_ts = int(startup_state.get(str(guild.id), 0))
+        if now_ts - last_sent_ts < STARTUP_ANNOUNCE_COOLDOWN_SECONDS:
+            continue
+
+        try:
+            await channel.send("🗣️Ngủm thế dell nào đc")
+            startup_state[str(guild.id)] = now_ts
+        except (discord.Forbidden, discord.HTTPException):
+            pass
+
+    save_startup_state(startup_state)
                     
 @bot.event
 async def on_disconnect():
