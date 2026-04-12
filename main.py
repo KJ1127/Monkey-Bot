@@ -150,9 +150,36 @@ async def on_message(message):
     elif "bot đâu" in msg:
         await message.channel.send("Đang lọ gọi con kẹc à")
 
-    elif msg == "ping":
-        await message.channel.send("🏓 Pong!")
-
+    elif msg in ["alo", "dạ alo", "da alo"]:
+        user_mention = message.author.mention
+        await message.channel.send(
+            "\n".join(
+                [
+                    f"Ờ anh chào {user_mention} nhá!"
+                    f"Em là {user_mention} hả {user_mention},"
+                     "Em ơi chối làm sao đc,",
+                     "Anh nói thật đấy,",
+                    f"{user_mention} mà ko nói chuyện nghiêm túc với anh là anh đăng hết thông tin của {user_mention} lên mạng đấy,",
+                     "Anh cho em cơ hội đấy để ae mình nói chuyện với nhau,",
+                     "Anh hứa là sau cuộc nói chuyện này anh ko đăng thông tin gì của em lên mạng cả,",
+                     "Chỉ là ae mình nói chuyện với nhau thôi,",
+                     "Như là địa chỉ nhà em,bố mẹ là gì?học ở trường nào?",
+                    f"Hay anh đoc một số thông tin của {user_mention} xem có chuẩn ko nhá,xem  {user_mention}có chối đc ko nhá,",
+                    f"Hay là {user_mention}.... {user_mention} muốn anh đọc ko",
+                    f"{user_mention} chối thì cx thiệt thôi,",
+                    f"Mình muốn nói chuyện với {user_mention} thôi,",
+                    f"{user_mention} còn trẻ quá {user_mention},{user_mention} hơn con anh có mấy tuổi à,",
+                    f"Tự nhiên {user_mention} đi làm thế dở hơi ra,",
+                     "Mình còn cả tương lai ở đằng trc",
+                    f"{user_mention} thích anh cho người đến tận nhà nói chuyện với bố mẹ em đấy {user_mention} ạ,",
+                     "Mình nói chuyện với người lớn đi trời ơi mình dám làm mình dám chịu chứ,",
+                    f"Nói chuyện xong anh hứa là anh ko đăng một cái thông tin gì của {user_mention} lên mạng cả {user_mention} ạ,",
+                    f"Ko nói chuyện dở hơi nx {user_mention} ạ,ko anh cho người đến tận nhà nói chuyện với bố mẹ em đấy {user_mention} ạ",
+                     "Mình còn trẻ,có cái gì sai mình giải quyết thôi có cái gì đâu",
+                    f"{user_mention} ƠI!",
+                ]
+            )
+        )
     elif msg == "docchieu":
         await message.channel.send(
             "⚔️ **ĐỘC CHIÊU!**",
