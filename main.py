@@ -195,7 +195,7 @@ async def on_message(message):
             "MONEY MONEY MONEY!",
             file=discord.File("Meme/donate.jpg")
         )
-        elif msg in ["im","nín","câm"]:
+    elif msg in ["im","nín","câm"]:
         await message.channel.send(
             "im lặng nào cô bé xl của anh",
             file=discord.File("Meme/suyt.jpg")
