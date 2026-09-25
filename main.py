@@ -104,7 +104,7 @@ async def on_error(event, *args, **kwargs):
     print(f"❌ Lỗi trong event {event}")
     traceback.print_exc()
 
-# ===== AUTO REPLY + GIF =====
+# ===== AUTO REPLY + GIF + MEME =====
 @bot.event
 async def on_message(message):
     if message.author.bot:
@@ -182,7 +182,7 @@ async def on_message(message):
         )
     elif msg == "docchieu":
         await message.channel.send(
-            "⚔️ **ĐỘC CHIÊU!**",
+            "**ĐỘC CHIÊU!**",
             file=discord.File("gif/docchieu.gif")
         )
     elif msg in ["căng thế", "chill đi", "chill", "ayo chill"]:
@@ -190,6 +190,32 @@ async def on_message(message):
             "bỉnh tõm đuy bờ rô🙂‍↕️",
             file=discord.File("gif/suwa_lowcortisol.gif")
         )
+    elif msg in ["donate","xin chút lúa","xin tí tiền"]
+        await message.channel.send(
+            "MONEY MONEY MONEY!",
+            file=discord.File("Meme/donate.jpg")
+        )
+        elif msg in ["im","nín","câm"]
+        await message.channel.send(
+            "im lặng nào cô bé xl của anh",
+            file=discord.File("Meme/suyt.jpg")
+        )
+    elif msg in ["peak","vip","oách"]
+        await message.channel.send(
+            "absolute cinema",
+            file=discord.File("Meme/tuyetdoidienanh.jpg")
+        )
+    elif msg in ["gà","yếu","🐔"]
+        await message.channel.send(
+            "sờ kiu ìn su",
+            file=discord.File("Meme/yeunghe.jpg")
+        )
+    elif msg in ["à hú","loli","🐺"]
+        await message.channel.send(
+            "anh đi săn em vào lúc tối nay",
+            file=discord.File("Meme/consoicodoc.jpg")
+        )
+
 
     await bot.process_commands(message)
 
