@@ -104,15 +104,23 @@ async def on_error(event, *args, **kwargs):
     print(f"❌ Lỗi trong event {event}")
     traceback.print_exc()
 
-# ===== AUTO REPLY + GIF + MEME =====
+# ===== HÀM HỖ TRỢ XỬ LÝ ROLE NOLEDADEN =====
+async def get_or_create_noledaden_role(guild):
+    role = discord.utils.get(guild.roles, name="noledaden")
+    if role is None:
+        try:
+            role = await guild.create_role(name="noledaden")
+        except (discord.Forbidden, discord.HTTPException):
+            return None
+    return role
+
+
+# ===== CẬP NHẬT EVENT ON_MESSAGE =====
 @bot.event
 async def on_message(message):
     if message.author.bot:
         return
 
-    
-    # Một số trường hợp reconnect có thể khiến event on_message bị đẩy trùng.
-    # Bỏ qua message ID đã xử lý để tránh bot trả lời lặp.
     if message.id in recent_message_ids:
         return
 
@@ -120,9 +128,9 @@ async def on_message(message):
     if len(recent_message_ids) > MAX_TRACKED_MESSAGE_IDS:
         recent_message_ids.clear()
 
-    # Chuẩn hóa khoảng trắng trước, rồi tạo thêm bản lower để so sánh hoa/thường
     normalized_message = " ".join(message.content.split())
     msg = normalized_message.casefold()
+
     # ===== AUTO REWRITE LINK =====
     rewritten_link = (
         message.content
@@ -139,12 +147,66 @@ async def on_message(message):
             await message.delete()
         except (discord.Forbidden, discord.HTTPException):
             pass
-            
+
     if bot.user.mentioned_in(message):
         await message.channel.send(f"Moẹ đang mệt ping kẹc gì hả {message.author.mention}")
 
-    # Từ đây trở xuống dùng `msg` (casefold) nên nhận cả chữ hoa và chữ thường.
-    if msg in ["hello", "hi", "chào"]:
+    # ===== XỬ LÝ LỆNH TƯỚC / CẤP QUYỀN CÔNG DÂN =====
+    if msg.startswith("tước quyền công dân") or msg.startswith("tuoc quyen cong dan"):
+        if not message.author.guild_permissions.manage_roles:
+            await message.channel.send("❌ Bạn không có quyền quản lý role để dùng lệnh này!")
+        elif not message.mentions:
+            await message.channel.send("❌ Bạn cần tag người dùng cần tước quyền công dân! Ví dụ: `tước quyền công dân @user 10s`")
+        else:
+            target_member = message.mentions[0]
+            role = await get_or_create_noledaden_role(message.guild)
+
+            if not role:
+                await message.channel.send("❌ Bot không thể tạo hoặc tìm thấy role `noledaden`. Kiểm tra lại quyền của bot.")
+            elif role >= message.guild.me.top_role:
+                await message.channel.send("❌ Role `noledaden` cao hơn hoặc bằng role của bot trong danh sách Roles!")
+            else:
+                # Tìm thời gian truyền vào ở cuối câu lệnh (nếu có)
+                parts = normalized_message.split()
+                duration_str = parts[-1]
+                seconds = parse_time(duration_str)
+
+                try:
+                    await target_member.add_roles(role)
+                    if seconds:
+                        duration_text = format_duration_vi(seconds)
+                        await message.channel.send(f"Đã tước quyền công dân của {target_member.mention} trong {duration_text}! Ban tặng role `noledaden`.")
+                        
+                        # Chờ hết thời gian rồi gỡ role
+                        await asyncio.sleep(seconds)
+                        if role in target_member.roles:
+                            await target_member.remove_roles(role)
+                            await message.channel.send(f"Đã hết thời hạn! {target_member.mention} đã được trả lại quyền công dân.")
+                    else:
+                        await message.channel.send(f"Đã tước quyền công dân của {target_member.mention}! Ban tặng role `noledaden` vĩnh viễn.")
+                except discord.Forbidden:
+                    await message.channel.send("❌ Discord từ chối thao tác cấp role. Hãy kiểm tra lại vị trí Role của bot.")
+
+    elif msg.startswith("cấp quyền công dân") or msg.startswith("cap quyen cong dan"):
+        if not message.author.guild_permissions.manage_roles:
+            await message.channel.send("❌ Bạn không có quyền quản lý role để dùng lệnh này!")
+        elif not message.mentions:
+            await message.channel.send("❌ Bạn cần tag người dùng cần cấp lại quyền công dân! Ví dụ: `cấp quyền công dân @user`")
+        else:
+            target_member = message.mentions[0]
+            role = discord.utils.get(message.guild.roles, name="noledaden")
+
+            if role and role in target_member.roles:
+                try:
+                    await target_member.remove_roles(role)
+                    await message.channel.send(f"Đã cấp lại quyền công dân cho {target_member.mention}! Đã thu hồi role `noledaden`.")
+                except discord.Forbidden:
+                    await message.channel.send("❌ Bot thiếu quyền gỡ role khỏi người dùng này.")
+            else:
+                await message.channel.send(f"Ây da, {target_member.mention} hiện tại đang là công dân đàng hoàng rồi, không có role `noledaden` đâu.")
+
+    # các auto reply cũ
+    elif msg in ["hello", "hi", "chào"]:
         await message.channel.send("Chào kẹc gì mà chào,Quen biết gì nhau mà chào")
 
     elif "bot đâu" in msg:
@@ -155,7 +217,7 @@ async def on_message(message):
         await message.channel.send(
             "\n".join(
                 [
-                    f"Ờ anh chào {user_mention} nhá!"
+                    f"Ờ anh chào {user_mention} nhá!",
                     f"Em là {user_mention} hả {user_mention},"
                      "Em ơi chối làm sao đc,",
                      "Anh nói thật đấy,",
@@ -216,8 +278,8 @@ async def on_message(message):
             file=discord.File("Meme/consoicodoc.jpg")
         )
 
-
     await bot.process_commands(message)
+
 
 # ===== MUSIC FILE MAP =====
 DIGIMON_MUSIC = {
